@@ -160,6 +160,35 @@ def release_pressure_useful_dual_rec(valve_h, valve_e, valves, minutes_left_h, m
         return 0
 
 
+def find_next_best_path_rec(valve, valves, minutes_left, opened, distances, useful_valves):
+    if minutes_left < 2:
+        return 0, []
+
+    flow_rates = []
+
+    new_opened = opened.copy()
+    if valve.flow_rate > 0:
+        new_opened.add(valve.name)
+        minutes_left -= 1
+        flow_rate = minutes_left * valve.flow_rate
+    else:
+        flow_rate = 0
+
+    for useful_valve in useful_valves:
+        if useful_valve not in new_opened:
+            distance = distances[valve.name][useful_valve]
+            child_flow_rate, path = find_next_best_path_rec(valves[useful_valve], valves, minutes_left - distance,
+                                                          new_opened, distances, useful_valves)
+            path.insert(0, valves[useful_valve])
+            flow_rates.append((child_flow_rate, path))
+
+    if flow_rates:
+        max_flow, path = max(flow_rates, key=lambda x: x[0])
+        return max_flow + flow_rate, path
+    else:
+        return 0, []
+
+
 def release_pressure(valve, valves, minutes_left):
     return release_pressure_rec(valve, valves, minutes_left, set(), set())
 
@@ -171,6 +200,45 @@ def release_pressure_useful(valve, valves, minutes_left, distances, useful_valve
 def release_pressure_useful_dual(valve, valves, minutes_left, distances, useful_valves):
     return release_pressure_useful_dual_rec(valve, valve, valves, minutes_left, minutes_left, set(), distances,
                                             useful_valves)
+
+## same as release_pressure_useful but next valve instead
+def find_next_best_path(valve, valves, minutes_left, opened, distances, useful_valves):
+    return find_next_best_path_rec(valve, valves, minutes_left, opened, distances, useful_valves)
+
+
+def release_pressure_by_turn(valve, valves, minutes_left, distances, useful_valves):
+    minutes_left_h = minutes_left
+    minutes_left_e = minutes_left
+
+    valve_h = valve
+    valve_e = valve
+
+    opened = set()
+
+    flow_rate = 0
+    while (minutes_left_e > 2 or minutes_left_h > 2) and len(opened) != len(useful_valves):
+        if minutes_left_h >= minutes_left_e:
+            path = find_next_best_path(valve_h, valves, minutes_left_h, opened, distances, useful_valves)[1]
+            next_valve = path[0]
+            minutes_left_h = minutes_left_h - distances[valve_h.name][next_valve.name] - 1
+            print(f"Opening valve {next_valve} for human at turn {26 - minutes_left_h}")
+            print(list(map(lambda x: x.name, path)))
+            opened.add(next_valve.name)
+            valve_h = next_valve
+            flow_rate += valve_h.flow_rate * minutes_left_h
+        else:
+            path = find_next_best_path(valve_e, valves, minutes_left_e, opened, distances, useful_valves)[1]
+            next_valve = path[0]
+            minutes_left_e = minutes_left_e - distances[valve_e.name][next_valve.name] - 1
+            print(f"Opening valve {next_valve} for elephant at turn {26 - minutes_left_e}")
+            print(list(map(lambda x: x.name, path)))
+            opened.add(next_valve.name)
+            valve_e = next_valve
+            flow_rate += valve_e.flow_rate * minutes_left_e
+    return flow_rate
+
+
+
 
 
 def main():
@@ -201,10 +269,9 @@ def main_bis():
             useful_valves.append(valve.name)
 
     distances = compute_distance(valve_list, valves)
-    print(distances)
     return release_pressure_useful(valves['AA'], valves, 30, distances, useful_valves)
 
-
+## too slow, bad result
 def main2():
     with open("input.txt") as f:
         lines = f.readlines()
@@ -223,5 +290,23 @@ def main2():
     return release_pressure_useful_dual(valves['AA'], valves, 26, distances, useful_valves)
 
 
+def main2bis():
+    with open("test_input.txt") as f:
+        lines = f.readlines()
+
+    valves = dict()
+    valve_list = []
+    useful_valves = []
+    for line in lines:
+        valve = parse_input_line(line)
+        valves[valve.name] = valve
+        valve_list.append(valve)
+        if valve.is_useful():
+            useful_valves.append(valve.name)
+
+    distances = compute_distance(valve_list, valves)
+    return release_pressure_by_turn(valves['AA'], valves, 26, distances, useful_valves)
+
+
 if __name__ == '__main__':
-    print(main2())
+    print(main2bis())
