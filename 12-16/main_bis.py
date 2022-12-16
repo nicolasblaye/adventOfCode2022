@@ -1,4 +1,5 @@
 import re
+import time
 
 
 class Valve:
@@ -120,4 +121,6 @@ def main():
 
 
 if __name__ == '__main__':
+    start = time.time()
     print(main())
+    print(round(time.time() - start, 1), "seconds")
