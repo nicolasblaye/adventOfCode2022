@@ -291,7 +291,7 @@ def main2():
 
 
 def main2bis():
-    with open("test_input.txt") as f:
+    with open("input.txt") as f:
         lines = f.readlines()
 
     valves = dict()
