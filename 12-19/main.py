@@ -74,12 +74,11 @@ def main(input_path):
 def main2(input_path):
     blueprints = parse_input(input_path)
     blueprints = blueprints[:3]
-    print(len(blueprints))
 
     max_geode = []
     for blueprint in blueprints:
         solution = Solution(blueprint, 0, 0, 0, 0, 1, 0, 0)
-        best_solution = compute_n_turns(24, solution)
+        best_solution = compute_n_turns(32, solution)
         max_geode.append(best_solution.get_ore(Geode()))
         #print(best_solution)
         print(f"max for blueprint {blueprint.b_id} is {best_solution.get_ore(Geode())}")
@@ -87,7 +86,7 @@ def main2(input_path):
 
 
 if __name__ == '__main__':
-    result = main2("test_input.txt")
+    result = main2("input.txt")
     geodes = 1
     for i in result:
         geodes *= i
