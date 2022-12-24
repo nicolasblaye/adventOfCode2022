@@ -101,17 +101,18 @@ def main(input_path, moves):
     grid, elfs = parse_input(input_path, moves)
     #for line in grid:
     #    print("".join(line))
-    print("################\n")
+    #print("################\n")
     for i in range(moves):
-        print("Start of Round: " + str(i+1))
+        #print("Start of Round: " + str(i+1))
         next_elfs, should_move_count = first_round(grid, elfs, i)
         if should_move_count == 0:
+            print("Start of Round: " + str(i + 1))
             break
         grid, elfs = second_round(grid, elfs, next_elfs)
 
         #for line in grid:
             #print("".join(line))
-        print("################")
+        #print("################")
 
     min_x = 1000
     max_x = 0
@@ -128,4 +129,4 @@ def main(input_path, moves):
     return result
 
 if __name__ == '__main__':
-    print(main("input.txt", 10000))
+    print(main("input.txt", 1000))
