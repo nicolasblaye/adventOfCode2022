@@ -52,7 +52,7 @@ def move_blizzards(grid, blizzards):
                 x = 1
 
             if direction == '<':
-                x = len(grid[0]) - 1
+                x = len(grid[0]) - 2
         new_blizzards.append((x, y, direction))
         blizz_set.add((x, y))
     return new_blizzards, blizz_set
@@ -63,51 +63,44 @@ def move_blizzards(grid, blizzards):
 def main(input_path):
     grid, blizzards = parse_input(input_path)
 
-    init_blizzards = blizzards.copy()
-
     x_start, y_start = 1, 0
     x_end, y_end = len(grid[0]) - 2, len(grid) - 1
 
-    paths = [
-        [(x_start, y_start, 0)]
-    ]
+    steps = {
+        '1': (x_end, y_end),
+        '2': (x_start, y_start),
+        '3': (x_end, y_end),
+    }
+    positions = {
+        (x_start, y_start, 0, '1')
+    }
 
     has_arrived = False
     while not has_arrived:
-        #print("TURN " + str(i))
-        #copy_grid = deepcopy(grid)
-        #for x_b, y_b, dir_b in blizzards:
-        #    copy_grid[y_b][x_b] = dir_b
-        #for line in copy_grid:
-        #    print("".join(line))
-        #print("###############")
-        print(len(blizzards))
         blizzards, bliz_set = move_blizzards(grid, blizzards)
-        print(len(blizzards))
-        new_paths = []
         new_pos = set()
-        for path in paths:
-            x_last, y_last, minute = path[-1]
+        for pos in positions:
+            x_last, y_last, minute, step = pos
             minute += 1
 
             ## Add the decision not to move
-            if (x_last, y_last) not in bliz_set and (x_last, y_last) not in new_pos:
-                new_path = path + [(x_last, y_last, minute)]
-                new_paths.append(new_path)
-                new_pos.add((x_last, y_last))
+            if (x_last, y_last) not in bliz_set:
+                new_pos.add((x_last, y_last, minute, step))
 
             for direction_fun in directions.values():
                 new_position = direction_fun((x_last, y_last))
                 # Game over
-                if new_position == (x_end, y_end):
-                    return path + [(x_end, y_end, minute)], grid, init_blizzards
+                if new_position == steps[step]:
+                    if step == '3':
+                        return minute
+                    else:
+                        next_step = str(int(step) + 1)
+                        new_pos.add((new_position[0], new_position[1], minute, next_step))
 
-                if is_valid(new_position, grid, bliz_set) and new_position not in new_pos:
-                    new_path = path + [(new_position[0], new_position[1], minute)]
-                    new_paths.append(new_path)
-                    new_pos.add(new_position)
-        paths = new_paths
+                if is_valid(new_position, grid, bliz_set):
+                    new_pos.add((new_position[0], new_position[1], minute, step))
+        positions = new_pos
 
 if __name__ == '__main__':
-    path, grid, init_blizz = main("input.txt")
-    print("\nResult is: ", path[-1][-1])
+    minute = main("input.txt")
+    print("\nResult is: ", minute)
